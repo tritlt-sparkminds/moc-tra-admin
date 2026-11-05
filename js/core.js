@@ -155,4 +155,82 @@ window.A = window.A || {};
     w.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
     return { el: w, close };
   };
+
+  // ---------- ô chọn tự vẽ (thay cho <select> gốc của trình duyệt) ----------
+  // Tự áp dụng cho mọi <select> xuất hiện trên trang. <select> gốc vẫn giữ (ẩn) để code cũ đọc .value / nghe 'change'.
+  let openMenu = null;
+  const closeMenu = (focusBtn) => {
+    if (!openMenu) return;
+    const { menu, btn } = openMenu;
+    menu.remove(); btn.setAttribute('aria-expanded', 'false'); btn.parentElement.classList.remove('open');
+    if (focusBtn) btn.focus();
+    openMenu = null;
+  };
+  const label = (sel) => sel.options[sel.selectedIndex]?.textContent ?? '';
+  function openFor(sel, btn) {
+    closeMenu();
+    const menu = document.createElement('div');
+    menu.className = 'csel-menu' + (document.body.classList.contains('theme-moc') ? ' moc' : '');
+    menu.setAttribute('role', 'listbox');
+    const groups = [...sel.children];
+    menu.innerHTML = groups.map((g) => g.tagName === 'OPTGROUP'
+      ? `<div class="csel-grp">${esc(g.label)}</div>${[...g.children].map((o) => item(o, true)).join('')}`
+      : item(g)).join('');
+    function item(o, inGroup) {
+      const on = o.value === sel.value;
+      return `<button type="button" role="option" class="${on ? 'on' : ''} ${inGroup ? 'ig' : ''}" aria-selected="${on}" data-v="${esc(o.value)}" ${o.disabled ? 'disabled' : ''}>${esc(o.textContent)}${on ? A.ic('check') : ''}</button>`;
+    }
+    document.body.appendChild(menu);
+    // mở về phía còn nhiều chỗ hơn; chiều cao giới hạn theo chỗ trống thực tế (dư thì cuộn trong danh sách)
+    const r = btn.getBoundingClientRect(), below = innerHeight - r.bottom - 12, above = r.top - 12;
+    const need = Math.min(menu.scrollHeight + 2, 300); // +2: viền trên/dưới
+    const up = below < need && above > below;
+    const mh = Math.max(120, Math.min(need, up ? above : below));
+    menu.style.minWidth = r.width + 'px';
+    menu.style.left = Math.max(8, Math.min(r.left, innerWidth - Math.max(r.width, menu.offsetWidth) - 8)) + 'px';
+    menu.style.top = (up ? r.top - mh - 6 : r.bottom + 6) + 'px';
+    menu.style.maxHeight = mh + 'px';
+    btn.setAttribute('aria-expanded', 'true'); btn.parentElement.classList.add('open');
+    openMenu = { menu, btn, sel };
+    (menu.querySelector('.on') || menu.querySelector('button'))?.focus({ preventScroll: true });
+    menu.querySelector('.on')?.scrollIntoView({ block: 'nearest' });
+    menu.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-v]'); if (!b) return;
+      if (sel.value !== b.dataset.v) { sel.value = b.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+      if (btn.isConnected) btn.querySelector('span').textContent = label(sel);
+      closeMenu(true);
+    });
+  }
+  A.enhanceSelects = (root = document) => {
+    root.querySelectorAll('select:not([data-csel])').forEach((sel) => {
+      sel.dataset.csel = '1';
+      const wrap = document.createElement('div');
+      wrap.className = 'csel ' + sel.className;
+      sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(sel);
+      sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'csel-btn';
+      btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+      const lab = sel.closest('.fld')?.querySelector('label');
+      if (lab) { lab.id ||= 'lb-' + Math.random().toString(36).slice(2, 8); btn.setAttribute('aria-labelledby', lab.id); lab.onclick = () => btn.click(); }
+      btn.innerHTML = `<span>${esc(label(sel))}</span>${A.ic('down')}`;
+      wrap.appendChild(btn);
+      btn.addEventListener('click', () => (openMenu?.btn === btn ? closeMenu() : openFor(sel, btn)));
+      btn.addEventListener('keydown', (e) => { if (['ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); openFor(sel, btn); } });
+      sel.addEventListener('change', () => { btn.querySelector('span').textContent = label(sel); });
+    });
+  };
+  document.addEventListener('mousedown', (e) => { if (openMenu && !e.target.closest('.csel-menu') && !openMenu.btn.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', (e) => {
+    if (!openMenu) return;
+    const items = [...openMenu.menu.querySelectorAll('[data-v]:not([disabled])')], i = items.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.stopPropagation(); closeMenu(true); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, i + 1)]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(0, i - 1)]?.focus(); }
+    else if (e.key === 'Tab') closeMenu();
+  }, true);
+  addEventListener('resize', () => closeMenu());
+  document.addEventListener('scroll', (e) => { if (openMenu && !openMenu.menu.contains(e.target)) closeMenu(); }, true);
+  new MutationObserver(() => A.enhanceSelects()).observe(document.documentElement, { childList: true, subtree: true });
 })();

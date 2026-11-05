@@ -674,3 +674,27 @@ html, body { max-width: 100%; overflow-x: clip; }
 .pg-dd-menu button.on { color: var(--pri-d); font-weight: 600; background: var(--pri-soft); }
 .pg-dd-menu .ic { width: 15px; height: 15px; }
 .card:has(.pg-dd.open) { overflow: visible; }
+
+/* ============ Ô CHỌN TỰ VẼ ============ */
+.csel { position: relative; display: inline-flex; min-width: 0; }
+.fld .csel { display: flex; width: 100%; }
+.csel > select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.csel.select { padding: 0; background: none; box-shadow: none; height: auto; border: 0; }
+.csel-btn { flex: 1; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; height: 38px; padding: 0 10px 0 12px; border-radius: var(--r-sm); border: 1px solid #D0D5DD; background: #fff; box-shadow: var(--sh); font-size: 14px; color: var(--text); text-align: left; cursor: pointer; }
+.csel-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.csel-btn .ic { width: 16px; height: 16px; color: var(--muted); flex: none; transition: transform .2s; }
+.csel-btn:hover { border-color: #98A2B3; }
+.csel-btn:focus-visible, .csel.open .csel-btn { outline: 0; border-color: var(--pri); box-shadow: 0 0 0 3px var(--pri-ring); }
+.csel.open .csel-btn .ic { transform: rotate(180deg); }
+.toolbar .csel-btn, .csel.select .csel-btn { height: 36px; min-width: 170px; font-size: 13.5px; }
+.csel-menu { position: fixed; z-index: 500; overflow-y: auto; padding: 4px; border-radius: 10px; background: #fff; border: 1px solid var(--line); box-shadow: var(--sh-lg); animation: csel-in .12s ease-out; }
+@keyframes csel-in { from { opacity: 0; transform: translateY(-3px); } }
+.csel-menu button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 6px 10px; border-radius: 6px; font-size: 13.5px; color: var(--text-2); text-align: left; white-space: nowrap; }
+.csel-menu button.ig { padding-left: 18px; }
+.csel-menu button:hover, .csel-menu button:focus-visible { background: var(--bg); color: var(--text); outline: 0; }
+.csel-menu button.on { background: var(--pri-soft); color: var(--pri-d); font-weight: 600; }
+.csel-menu button:disabled { opacity: .4; cursor: not-allowed; }
+.csel-menu .ic { width: 15px; height: 15px; flex: none; }
+.csel-grp { padding: 8px 10px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.csel-grp:not(:first-child) { border-top: 1px solid var(--line-2); margin-top: 4px; }
+@media (max-width: 640px) { .toolbar .csel { flex: 1 1 100%; } .toolbar .csel-btn { min-width: 0; } .csel-menu button { min-height: 42px; } }
