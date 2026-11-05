@@ -76,10 +76,10 @@
 
 /* ---------- tiêu đề ---------- */
 .theme-moc .ph-t h1 { font: 300 clamp(36px, 3.4vw, 50px)/1.05 var(--sign); letter-spacing: -.01em; }
-.theme-moc .info { width: 32px; height: 32px; color: var(--mint-3); }
-.theme-moc .info:hover, .theme-moc .info:focus-visible { color: var(--pri-d); background: var(--mint); }
-.theme-moc .info .tip { border: 0; border-radius: 16px; padding: 12px 14px; box-shadow: 0 24px 50px -20px rgba(35,53,44,.45), 0 0 0 1px rgba(35,53,44,.06); }
-.theme-moc .info .tip::before { border: 0; }
+.theme-moc .ph-info { width: 32px; height: 32px; color: var(--mint-3); }
+.theme-moc .ph-info:hover, .theme-moc .ph-info:focus-visible { color: var(--pri-d); background: var(--mint); }
+.theme-moc .ph-info .tip { border: 0; border-radius: 16px; padding: 12px 14px; box-shadow: 0 24px 50px -20px rgba(35,53,44,.45), 0 0 0 1px rgba(35,53,44,.06); }
+.theme-moc .ph-info .tip::before { border: 0; }
 .theme-moc .sh .mk.ms { box-shadow: inset 0 0 0 2px var(--warn), 0 0 0 2px rgba(255,255,255,.8); }
 .theme-moc .card-h h3 { font: 400 23px/1.2 var(--sign); }
 .theme-moc .m-h h3 { font: 400 30px/1.1 var(--sign); }
@@ -137,7 +137,8 @@
 .theme-moc .sched tbody tr:not(.grp):not(.cov) td:first-child { background: rgba(255,255,255,.96); }
 .theme-moc .sched th:first-child { background: #F6FAF7; }
 .theme-moc .sched th.d b { font: 300 22px/1.1 var(--sign); letter-spacing: 0; text-transform: none; }
-.theme-moc .sched th.d.today b { display: block; background: none; color: var(--pri); font-style: italic; padding: 0; margin: 0; }
+.theme-moc .sched th.d.today { background: var(--mint-2); color: var(--pri-d); box-shadow: none; }
+.theme-moc .sched th.d.today b { color: var(--text); font-style: italic; }
 .theme-moc .sched td.today { background: rgba(228,240,231,.55); }
 .theme-moc .hrs { font: 300 21px var(--sign); font-variant-numeric: lining-nums; }
 .theme-moc .av { box-shadow: inset 0 0 0 2px rgba(255,255,255,.7); }
@@ -237,3 +238,35 @@
 .theme-moc .lg-cups { bottom: 90px; }
 .theme-moc .lc { filter: drop-shadow(0 26px 22px rgba(35,53,44,.2)); }
 .theme-moc .lg-petal svg g { fill: #F5CFCB; }
+
+@media (max-width: 1024px) {
+  .theme-moc .sb { top: 12px; bottom: auto; height: calc(100dvh - 24px); overflow-y: auto; }
+  .theme-moc .sb-body { flex: none; }
+  .theme-moc .sb-mt { height: 70px; flex: none; }
+  .theme-moc .sb-user { position: sticky; bottom: 0; background: rgba(255,255,255,.95); }
+}
+@media (max-width: 640px) {
+  .theme-moc .scope-pop { top: 84px; }
+  .theme-moc .kpi b { font-size: 30px; }
+}
+
+/* hồ sơ nhân viên — Mộc Trà */
+.theme-moc .modal-pan.pf { background: linear-gradient(180deg, #F3F8F5, #EAF4EE); }
+.theme-moc .pf .pf-head { border: 0; padding: 26px 26px 22px; background: linear-gradient(180deg, #E6F2EA, #D4E9DC); }
+.theme-moc .pf .pf-mt { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 80px; opacity: .6; pointer-events: none; }
+.theme-moc .pf .pf-mt svg { width: 100%; height: 100%; }
+.theme-moc .pf .pf-head > *:not(.pf-mt) { position: relative; }
+.theme-moc .pf-id { background: rgba(255,255,255,.7); border-radius: 999px; }
+.theme-moc .pf .pf-head h2 { font: 400 34px/1.05 var(--sign); }
+.theme-moc .pf-meta .ic { color: var(--pri); }
+.theme-moc .pf .pf-stats div, .theme-moc .pf .pf-sec { border: 0; border-radius: 20px; background: rgba(255,255,255,.88); box-shadow: 0 10px 24px -18px rgba(35,53,44,.35); }
+.theme-moc .pf .pf-stats b { font: 300 28px/1.1 var(--sign); font-variant-numeric: lining-nums; }
+.theme-moc .pf .pf-sec h4 { font: 400 20px var(--sign); }
+.theme-moc .pf-week li.today { background: var(--mint); border-radius: 12px; }
+.theme-moc .pf-bar { border-radius: 999px; }
+@media (max-width: 640px) { .theme-moc .modal.drawer .modal-pan.pf { border-radius: 0; } .theme-moc .pf .pf-head h2 { font-size: 30px; } }
+
+.theme-moc .pg-dd-btn { border-radius: 999px; border-color: var(--line); background: rgba(255,255,255,.9); }
+.theme-moc .pg-dd-menu { border: 0; border-radius: 16px; padding: 6px; box-shadow: 0 24px 50px -20px rgba(35,53,44,.45), 0 0 0 1px rgba(35,53,44,.06); }
+.theme-moc .pg-dd-menu button { border-radius: 10px; }
+.theme-moc .pg-dd-menu button.on { background: var(--mint); color: var(--text); }

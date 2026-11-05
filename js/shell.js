@@ -40,7 +40,7 @@
 
   // ---------- thành phần dùng chung ----------
   A.av = (e, cls = '') => `<span class="av ${cls}" style="--av:${e.color}">${e.initials}</span>`;
-  A.person = (e, sub) => `<div class="person">${A.av(e)}<div class="who"><b>${A.esc(e.name)}</b><small>${sub ?? D.roles[e.role] + ' · ' + e.id}</small></div></div>`;
+  A.person = (e, sub) => `<div class="person"><div class="who"><b>${A.esc(e.name)}</b><small>${sub ?? D.roles[e.role] + ' · ' + e.id}</small></div></div>`;
   // chip ca: plan (từ D.planOf) để hiện giờ chỉnh riêng; nếu không có thì lấy giờ mẫu của ca theo ngày
   A.shiftChip = (code, { mark = '', extra = '', plan = null, date = A.TODAY, short = false } = {}) => {
     if (code === 'OFF') return `<span class="sh OFF ${extra}">Nghỉ</span>`;
@@ -53,7 +53,7 @@
   A.attBadge = (a) => `<span class="bdg ${a.status}">${D.attName[a.status]}</span>`;
   // tiêu đề trang: mô tả nằm trong tooltip của icon thông tin (rê chuột / focus để xem)
   A.head = (title, desc, actions = '') => `
-    <div class="ph"><div class="ph-t"><h1>${title}</h1>${desc ? `<span class="info" tabindex="0" role="button" aria-label="Thông tin về trang ${A.esc(title)}">${ic('info')}<span class="tip" role="tooltip">${desc}</span></span>` : ''}</div><div class="ph-act">${actions}</div></div>`;
+    <div class="ph"><div class="ph-t"><h1>${title}</h1>${desc ? `<span class="ph-info" tabindex="0" role="button" aria-label="Thông tin về trang ${A.esc(title)}">${ic('info')}<span class="tip" role="tooltip">${desc}</span></span>` : ''}</div><div class="ph-act">${actions}</div></div>`;
   A.kpi = (label, val, unit, sub, cls = '', icon = 'clock') => `
     <div class="kpi ${cls}"><span class="lb">${ic(icon)}${label}</span><b>${val}${unit ? `<small>${unit}</small>` : ''}</b><p>${sub}</p></div>`;
   // ---------- phân trang dùng chung ----------
@@ -70,7 +70,11 @@
     const sizes = [...new Set([size, 10, 20, 50])].sort((a, b) => a - b);
     const html = `<div class="pager" data-pgkey="${key}">
       <span class="pg-info">${total ? `Hiển thị <b>${from + 1}–${from + slice.length}</b> trên <b>${total}</b>` : 'Không có dữ liệu'}</span>
-      <label class="pg-size">Số dòng mỗi trang <select data-pgsize>${sizes.map((n) => `<option value="${n}" ${n === st.size ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <div class="pg-size"><span id="pgl-${key}">Số dòng mỗi trang</span>
+        <div class="pg-dd">
+          <button type="button" class="pg-dd-btn" data-pgdd aria-haspopup="listbox" aria-expanded="false" aria-labelledby="pgl-${key}">${st.size}${ic('down')}</button>
+          <ul class="pg-dd-menu" role="listbox" aria-labelledby="pgl-${key}">${sizes.map((n) => `<li><button type="button" role="option" data-pgsize="${n}" aria-selected="${n === st.size}" class="${n === st.size ? 'on' : ''}">${n} dòng${n === st.size ? ic('check') : ''}</button></li>`).join('')}</ul>
+        </div></div>
       <div class="pg-btns">
         <button data-pg="${st.page - 1}" ${st.page === 1 ? 'disabled' : ''} aria-label="Trang trước">${ic('chevL')}</button>
         ${nums.map((n) => (n === '…' ? '<span class="pg-gap">…</span>' : `<button data-pg="${n}" class="${n === st.page ? 'on' : ''}" ${n === st.page ? 'aria-current="page"' : ''}>${n}</button>`)).join('')}
@@ -115,7 +119,7 @@
         </header>
         <section class="view" id="view"></section>
       </div>
-      <span class="poc-tag">Bản thử nghiệm · dữ liệu minh hoạ</span>`);
+      <span class="poc-tag">Bản thử nghiệm · dữ liệu lưu trên trình duyệt · <button id="resetData">Khôi phục dữ liệu mẫu</button></span>`);
 
     $('#sbToggle').onclick = () => {
       const c = document.body.classList.toggle('collapsed');
@@ -131,6 +135,11 @@
       const m = A.modal(`<div class="m-h"><h3>Đăng xuất?</h3><p>Bạn sẽ quay lại màn hình đăng nhập. Dữ liệu demo chưa lưu sẽ mất khi tải lại trang.</p></div>
         <div class="m-f"><button class="btn btn-sec" data-close>Huỷ</button><button class="btn btn-pri" id="outOk">${ic('logout')} Đăng xuất</button></div>`);
       m.el.querySelector('#outOk').onclick = A.logout;
+    };
+    $('#resetData').onclick = () => {
+      const m = A.modal(`<div class="m-h"><h3>Khôi phục dữ liệu mẫu?</h3><p>Toàn bộ lịch đã xếp, chấm công, ca làm việc, đơn và hồ sơ bạn đã thay đổi sẽ bị xoá và quay về dữ liệu mẫu ban đầu.</p></div>
+        <div class="m-f"><button class="btn btn-sec" data-close>Huỷ</button><button class="btn btn-no" id="rsOk">Khôi phục</button></div>`);
+      m.el.querySelector('#rsOk').onclick = A.resetData;
     };
     $('#themeIc').onclick = () => A.setTheme(document.body.dataset.theme === 'moc' ? 'std' : 'moc');
     A.setTheme(document.body.dataset.theme, true);
@@ -153,9 +162,31 @@
       const b = e.target.closest('.pager [data-pg]'); if (!b || b.disabled) return;
       A.pg[b.closest('.pager').dataset.pgkey].page = +b.dataset.pg; A.refresh();
     });
-    document.addEventListener('change', (e) => {
-      const sel = e.target.closest('.pager [data-pgsize]'); if (!sel) return;
-      const st = A.pg[sel.closest('.pager').dataset.pgkey]; st.size = +sel.value; st.page = 1; A.refresh();
+    // danh sách chọn số dòng tự vẽ (không dùng <select> gốc của trình duyệt)
+    const closeDd = (except) => $$('.pg-dd.open').forEach((d) => { if (d !== except) { d.classList.remove('open'); d.querySelector('[data-pgdd]').setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('click', (e) => {
+      const opt = e.target.closest('.pager [data-pgsize]');
+      if (opt) { const st = A.pg[opt.closest('.pager').dataset.pgkey]; st.size = +opt.dataset.pgsize; st.page = 1; A.refresh(); return; }
+      const btn = e.target.closest('.pager [data-pgdd]');
+      if (btn) {
+        const dd = btn.parentElement, open = !dd.classList.contains('open');
+        closeDd(dd);
+        dd.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open));
+        if (open) { // mở lên trên nếu phía dưới không đủ chỗ
+          const r = btn.getBoundingClientRect();
+          dd.classList.toggle('up', innerHeight - r.bottom < 170);
+          dd.querySelector('.on')?.focus();
+        }
+        return;
+      }
+      closeDd();
+    });
+    document.addEventListener('keydown', (e) => {
+      const dd = document.querySelector('.pg-dd.open'); if (!dd) return;
+      const items = [...dd.querySelectorAll('[data-pgsize]')], i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { closeDd(); dd.querySelector('[data-pgdd]').focus(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, i + 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(0, i - 1)].focus(); }
     });
   };
 
@@ -213,6 +244,7 @@
     A.pages[id].mount?.(v);
     window.scrollTo({ top: keepScroll ? y : 0 });
   };
-  A.dispatch = () => draw(false);
-  A.refresh = () => draw(true);
+  // mọi thay đổi dữ liệu đều kết thúc bằng refresh → lưu lại ngay
+  A.dispatch = () => { A.persist?.(); draw(false); };
+  A.refresh = () => { A.persist?.(); draw(true); };
 })();

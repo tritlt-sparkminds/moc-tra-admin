@@ -243,3 +243,22 @@
   // chỉnh tay vài ca để có dữ liệu "điều chỉnh công"
   A.state.att['NV013|2026-11-04'] = { in: 422, out: 728, note: 'Bổ sung giờ ra theo xác nhận của ca trưởng', by: 'Lý Hoàng Phúc' };
 })();
+
+// ---------- lưu dữ liệu demo vào trình duyệt (F5 không mất) ----------
+// Lưu toàn bộ phần thay đổi được: lịch đã xếp, giờ chỉnh riêng, chấm công, quy tắc, ca làm việc, đơn, hồ sơ nhân viên.
+(() => {
+  const D = A.data, KEY = 'mt-admin-data-v1';
+  A.persist = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), state: A.state, shifts: D.shifts, requests: D.requests, employees: D.employees }));
+    } catch (e) { console.warn('Không lưu được dữ liệu demo', e); }
+  };
+  A.resetData = () => { localStorage.removeItem(KEY); location.reload(); };
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (s && s.state && s.shifts && s.requests && s.employees) {
+      A.state = { ...A.state, ...s.state, rules: { ...A.state.rules, ...s.state.rules } };
+      D.shifts = s.shifts; D.requests = s.requests; D.employees = s.employees;
+    }
+  } catch (e) { console.warn('Dữ liệu demo đã lưu bị lỗi, dùng dữ liệu mẫu', e); }
+})();

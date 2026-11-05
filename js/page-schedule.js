@@ -155,14 +155,21 @@
       editCell(D.emp(td.dataset.e), td.dataset.d);
     });
     v.querySelector('[data-act="copy"]').onclick = () => {
-      let n = 0;
+      // mỗi ô lấy ca cùng thứ của tuần trước; nếu tuần trước còn trống thì lùi tối đa 4 tuần
+      let n = 0, back = 0;
       A.staffInScope().forEach((e) => weekDays().forEach((d) => {
         if (d < A.TODAY || !D.inSchedule(e, d)) return;
-        const prev = D.shiftOf(e, A.add(d, -7));
-        if (prev && prev !== 'LEAVE') { D.setShift(e.id, d, prev, A.state.custom[e.id + '|' + A.add(d, -7)]); n++; }
+        for (let w = 1; w <= 4; w++) {
+          const src = A.add(d, -7 * w), c = D.shiftOf(e, src);
+          if (c == null) continue;
+          D.setShift(e.id, d, c === 'LEAVE' ? 'OFF' : c, c === 'LEAVE' ? null : A.state.custom[e.id + '|' + src]);
+          n++; if (w > 1) back++;
+          break;
+        }
       }));
       A.state.published[ui.week] = false;
-      A.refresh(); A.toast(n ? `Đã sao chép ${n} ca từ tuần trước` : 'Tuần trước chưa có ca nào để sao chép');
+      A.refresh();
+      A.toast(!n ? 'Chưa có lịch trong 4 tuần trước để sao chép' : `Đã sao chép ${n} ca${back ? ` (${back} ca lấy từ các tuần trước đó vì tuần trước còn trống)` : ' từ tuần trước'}`);
     };
     v.querySelector('[data-act="export"]').onclick = () => A.toast('Bản demo: xuất file lich-truc.xlsx');
     v.querySelector('[data-act="publish"]').onclick = () => {

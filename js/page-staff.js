@@ -49,8 +49,8 @@
           <td class="r num">${e.leaveTotal ? `${e.leaveTotal - e.leaveUsed}/${e.leaveTotal}` : '<span class="muted">—</span>'}</td>
           <td>${a ? A.attBadge(a) : '<span class="muted">—</span>'}</td>
           <td><span class="bdg ${e.status}">${D.statusName[e.status]}</span></td></tr>`; }).join('')}
-        </tbody></table>${pg.html}` : A.emptyBox('Không tìm thấy nhân viên phù hợp.')}
-      </div></div>`;
+        </tbody></table>` : A.emptyBox('Không tìm thấy nhân viên phù hợp.')}
+      </div>${list.length ? pg.html : ''}</div>`;
   }
 
   // drawer hồ sơ — dùng chung cho các trang khác
@@ -58,29 +58,48 @@
     const s = monthStat(e);
     const ws = A.weekStart(A.TODAY);
     const week = Array.from({ length: 7 }, (_, i) => A.add(ws, i));
-    const reqs = D.requests.filter((r) => r.empId === e.id || r.targetId === e.id);
+    const reqs = D.requests.filter((r) => r.empId === e.id || r.targetId === e.id).sort((a, b) => b.created.localeCompare(a.created));
+    const st = D.stores[e.storeId];
+    const left = e.leaveTotal ? e.leaveTotal - e.leaveUsed : null;
+    const contract = e.status === 'probation' ? 'Thử việc 2 tháng' : e.type === 'FT' ? 'HĐLĐ xác định thời hạn 12 tháng' : 'HĐ bán thời gian · ' + (e.salary || 28000).toLocaleString('vi-VN') + 'đ/giờ';
+    const row = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
+    const dayRow = (d) => {
+      const c = D.inSchedule(e, d) ? D.shiftOf(e, d) : undefined, p = D.planOf(e, d);
+      let v;
+      if (c === undefined) v = '<span class="muted">Không xếp lịch</span>';
+      else if (c == null) v = '<span class="muted">Chưa xếp ca</span>';
+      else if (c === 'OFF') v = '<span class="muted">Nghỉ</span>';
+      else if (c === 'LEAVE') v = '<span class="pf-leave">Nghỉ phép</span>';
+      else v = `<i class="dotc" style="--c:${D.shifts[c].color}"></i><b>${A.esc(D.shifts[c].name)}</b><span class="num">${A.hm(p.start)}–${A.hm(p.end)}</span>${p.custom ? '<span class="bdg plain upcoming">giờ riêng</span>' : ''}`;
+      return `<li class="${d === A.TODAY ? 'today' : ''}"><span class="d"><b>${A.DOW[A.dow(d)]}</b>${A.dm(d)}</span><span class="v">${v}</span></li>`;
+    };
     const m = A.modal(`
-      <div class="pf-head"><div class="pf-mt">${A.mountains()}</div><span class="pf-bl">${A.bloom4('currentColor')}</span>
-        <div class="in">${A.av(e, 'lg')}<div><h2>${A.esc(e.name)}</h2><p>${e.id} · ${D.roles[e.role]} · ${D.stores[e.storeId].name} (${D.branchOf(e.storeId).name})</p>
-        <div style="margin-top:8px;display:flex;gap:6px"><span class="bdg ${e.status}">${D.statusName[e.status]}</span><span class="bdg plain">${e.type === 'FT' ? 'Toàn thời gian' : 'Bán thời gian'}</span></div></div></div>
-      </div>
-      <div class="pf-stats">
-        <div><b>${A.hrs(s.min)}</b><small>giờ công tháng ${+A.TODAY.slice(5, 7)}</small></div>
-        <div><b>${s.shifts}</b><small>ca đã làm</small></div>
-        <div><b style="${s.late ? 'color:var(--coral)' : ''}">${s.late}</b><small>lần đi trễ</small></div>
-        <div><b>${e.leaveTotal ? e.leaveTotal - e.leaveUsed : '—'}</b><small>ngày phép còn</small></div>
-      </div>
-      <div class="pf-sec"><h4>Lịch tuần này</h4><div class="week-mini">${week.map((d) => `<div>${A.DOW[A.dow(d)]} ${A.dm(d).slice(0, 2)}${D.inSchedule(e, d) ? A.shiftChip(D.shiftOf(e, d), { short: true, plan: D.planOf(e, d), date: d }) : '<span class="sh none">—</span>'}</div>`).join('')}</div></div>
-      <div class="pf-sec"><h4>Thông tin cá nhân</h4><dl class="dl">
-        <dt>Điện thoại</dt><dd class="num">${e.phone}</dd><dt>Email</dt><dd>${e.email}</dd>
-        <dt>Ngày sinh</dt><dd>${A.dmy(e.dob)} · ${e.gender === 'F' ? 'Nữ' : 'Nam'}</dd><dt>CCCD</dt><dd class="num">${e.cccd.slice(0, 3)} *** *** ${e.cccd.slice(-3)}</dd>
-        <dt>Địa chỉ</dt><dd>${e.address}</dd><dt>Tài khoản lương</dt><dd>${e.bank}</dd></dl></div>
-      <div class="pf-sec"><h4>Công việc</h4><dl class="dl">
-        <dt>Vị trí</dt><dd>${D.roles[e.role]}</dd><dt>Cửa hàng</dt><dd>${D.stores[e.storeId].name} (${D.stores[e.storeId].address})</dd>
-        <dt>Ngày vào làm</dt><dd>${A.dmy(e.start)} · ${tenure(e.start)}</dd><dt>Hợp đồng</dt><dd>${e.status === 'probation' ? 'Thử việc 2 tháng' : e.type === 'FT' ? 'HĐLĐ xác định thời hạn 12 tháng' : 'HĐ bán thời gian · ' + (e.salary || 28000).toLocaleString('vi-VN') + 'đ/giờ'}</dd>
-        <dt>Quỹ phép năm</dt><dd>${e.leaveTotal ? `Đã dùng ${e.leaveUsed}/${e.leaveTotal} ngày` : 'Không áp dụng'}</dd></dl></div>
-      ${reqs.length ? `<div class="pf-sec"><h4>Đơn gần đây</h4>${reqs.map((r) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${r.kind === 'leave' ? `${D.leaveTypes[r.type]} · ${A.dm(r.from)}${r.to !== r.from ? '–' + A.dm(r.to) : ''}` : `${r.mode === 'cover' ? 'Nhờ làm thay' : 'Đổi ca'} · ${A.dm(r.date)}`}</span><span class="bdg ${r.status}">${RQ[r.status]}</span></div>`).join('')}</div>` : ''}
-      <div class="m-f" style="position:sticky;bottom:0;background:#fff"><button class="btn btn-sec" id="pfSched">${ic('cal')} Xem lịch cửa hàng</button><button class="btn btn-pri" id="pfEdit">${ic('edit')} Chỉnh sửa hồ sơ</button></div>`, { drawer: true, cls: 'drawer-pan' });
+      <header class="pf-head"><div class="pf-mt">${A.mountains()}</div>
+        <div class="pf-tags"><span class="pf-id">${e.id}</span><span class="bdg ${e.status}">${D.statusName[e.status]}</span><span class="bdg plain">${e.type === 'FT' ? 'Toàn thời gian' : 'Bán thời gian'}</span></div>
+        <h2>${A.esc(e.name)}</h2>
+        <p class="pf-meta"><span>${ic('user')}${D.roles[e.role]}</span><span>${ic('store')}${st.name} · ${D.branchOf(e.storeId).name}</span></p>
+        <div class="pf-act"><button class="btn btn-pri" id="pfEdit">${ic('edit')} Chỉnh sửa hồ sơ</button><button class="btn btn-sec" id="pfSched">${ic('cal')} Xem lịch cửa hàng</button></div>
+      </header>
+      <div class="pf-body">
+        <div class="pf-stats">
+          <div><small>Giờ công tháng ${+A.TODAY.slice(5, 7)}</small><b>${A.hrs(s.min)}</b></div>
+          <div><small>Ca đã làm</small><b>${s.shifts}</b></div>
+          <div class="${s.late ? 'bad' : ''}"><small>Lần đi trễ</small><b>${s.late}</b></div>
+          <div><small>Ngày phép còn</small><b>${left ?? '—'}</b></div>
+        </div>
+        <section class="pf-sec"><h4>Lịch tuần này <small>${A.dm(week[0])} – ${A.dm(week[6])}</small></h4><ul class="pf-week">${week.map(dayRow).join('')}</ul></section>
+        <section class="pf-sec"><h4>Thông tin cá nhân</h4><dl class="pf-dl">
+          ${row('Điện thoại', `<span class="num">${e.phone}</span>`)}${row('Email', A.esc(e.email))}
+          ${row('Ngày sinh', `${A.dmy(e.dob)} · ${e.gender === 'F' ? 'Nữ' : 'Nam'}`)}${row('CCCD', `<span class="num">${e.cccd.slice(0, 3)} *** *** ${e.cccd.slice(-3)}</span>`)}
+          ${row('Địa chỉ', A.esc(e.address))}${row('Tài khoản lương', A.esc(e.bank))}
+        </dl></section>
+        <section class="pf-sec"><h4>Công việc</h4><dl class="pf-dl">
+          ${row('Vị trí', D.roles[e.role])}${row('Cửa hàng', `${st.name}<br/><small class="muted">${st.address}</small>`)}
+          ${row('Ngày vào làm', `${A.dmy(e.start)}<br/><small class="muted">Thâm niên ${tenure(e.start)}</small>`)}${row('Hợp đồng', contract)}
+          <div class="full"><dt>Quỹ phép năm</dt><dd>${e.leaveTotal ? `<span class="pf-bar"><i style="width:${(e.leaveUsed / e.leaveTotal) * 100}%"></i></span>Đã dùng ${e.leaveUsed}/${e.leaveTotal} ngày · còn ${left} ngày` : 'Không áp dụng cho bán thời gian'}</dd></div>
+        </dl></section>
+        <section class="pf-sec"><h4>Đơn gần đây</h4>${reqs.length ? `<ul class="pf-req">${reqs.map((r) => `<li><span><b>${r.kind === 'leave' ? D.leaveTypes[r.type] : r.mode === 'cover' ? 'Nhờ làm thay' : 'Đổi ca'}</b><small>${r.kind === 'leave' ? `${A.dmy(r.from)}${r.to !== r.from ? ' – ' + A.dmy(r.to) : ''}` : A.dmy(r.date)}${r.targetId === e.id ? ' · được nhờ' : ''}</small></span><span class="bdg ${r.status}">${RQ[r.status]}</span></li>`).join('')}</ul>` : '<p class="muted pf-empty">Chưa có đơn nào.</p>'}</section>
+      </div>`, { drawer: true, cls: 'drawer-pan pf' });
     m.el.querySelector('#pfEdit').onclick = () => { m.close(); form(e); };
     m.el.querySelector('#pfSched').onclick = () => { m.close(); if (!A.user.lockScope) A.scope = { type: 'store', id: e.storeId }; location.hash = '#/schedule'; A.dispatch(); };
   };

@@ -70,8 +70,9 @@
         </div>
         <div class="card-h"><div class="chips">${FILTERS.map(([k, l]) => `<button class="chip ${ui.filter === k ? 'on' : ''}" data-f="${k}">${l} <b>${sum(k)}</b></button>`).join('')}</div></div>
         <div class="scroll-x">
-          ${list.length ? `<table class="t"><thead><tr><th>Nhân viên</th><th>Ca</th><th>Giờ vào</th><th>Giờ ra</th><th>Đi trễ</th><th><div class="tl-ax"><span>06:00</span><span>14:00</span><span>23:00</span></div></th><th class="r">Giờ công</th><th>Trạng thái</th><th></th></tr></thead><tbody>${rows}</tbody></table>${pg.html}` : A.emptyBox('Không có ca nào khớp bộ lọc.')}
+          ${list.length ? `<table class="t"><thead><tr><th>Nhân viên</th><th>Ca</th><th>Giờ vào</th><th>Giờ ra</th><th>Đi trễ</th><th><div class="tl-ax"><span>06:00</span><span>14:00</span><span>23:00</span></div></th><th class="r">Giờ công</th><th>Trạng thái</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : A.emptyBox('Không có ca nào khớp bộ lọc.')}
         </div>
+        ${list.length ? pg.html : ''}
       </div>`;
   }
 
@@ -127,8 +128,9 @@
             <td class="r num">${s.absent ? `<span class="late">${s.absent}</span>` : '<span class="muted">0</span>'}</td>
             <td class="r num">${s.leave || '<span class="muted">0</span>'}</td>
             <td><span class="bdg ${s.rate >= 90 ? 'active' : s.rate >= 75 ? 'pending' : 'absent'}">${Math.max(0, s.rate)}%</span></td></tr>`).join('')}</tbody>
-          <tfoot><tr><td>Tổng</td><td></td><td class="r num">${T.worked}/${T.plan}</td><td class="r"><span class="hrs">${A.hrs(T.min)}</span></td><td></td><td class="r num">${T.late} lần</td><td></td><td class="r num">${T.absent}</td><td class="r num">${T.leave}</td><td></td></tr></tfoot></table>${pgM.html}` : A.emptyBox('Chưa có dữ liệu chấm công tháng này.')}
+          <tfoot><tr><td>Tổng</td><td></td><td class="r num">${T.worked}/${T.plan}</td><td class="r"><span class="hrs">${A.hrs(T.min)}</span></td><td></td><td class="r num">${T.late} lần</td><td></td><td class="r num">${T.absent}</td><td class="r num">${T.leave}</td><td></td></tr></tfoot></table>` : A.emptyBox('Chưa có dữ liệu chấm công tháng này.')}
         </div>
+        ${stat.length ? pgM.html : ''}
       </div>`;
   }
 
@@ -162,7 +164,7 @@
         <div class="fld pT"><label>Giờ vào</label><input type="time" id="pIn" value="${vIn != null ? A.hm(vIn) : ''}"/></div>
         <div class="fld pT"><label>Giờ ra</label><input type="time" id="pOut" value="${vOut != null ? A.hm(vOut) : ''}"/><span class="hint">Để trống nếu nhân viên vẫn đang trong ca</span></div>
         <div class="fld full"><label>Ghi chú${recorded ? ' (bắt buộc khi sửa)' : ''}</label><textarea id="pNote" placeholder="${recorded ? 'VD: nhập nhầm giờ, ca trưởng xác nhận lại' : 'Không bắt buộc'}">${A.esc(a.note || '')}</textarea></div>
-        <div class="warnbox info full" style="margin:0">${ic('user')} Người chấm: ${me()} · Ghi nhận lúc ${A.hm(A.NOW_MIN)} ${A.dm(A.TODAY)}</div>
+        <div class="warnbox info full" style="margin:0">${ic('user')}<span>Người chấm: <b>${A.esc(me())}</b> · Ghi nhận lúc ${A.hm(A.NOW_MIN)} ngày ${A.dm(A.TODAY)}</span></div>
         <div class="f-err full" id="pErr"></div>
       </div>
       <div class="m-f"><button class="btn btn-sec" data-close>Huỷ</button><button class="btn btn-pri" id="pOk">Lưu chấm công</button></div>`);

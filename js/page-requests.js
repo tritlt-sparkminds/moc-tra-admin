@@ -49,7 +49,7 @@
     } else {
       const t = D.emp(r.targetId);
       what = `<h4>${r.mode === 'cover' ? 'Nhờ làm thay' : 'Đổi ca'} · ${A.DOW_LONG[A.dow(r.date)]} ${A.dm(r.date)}</h4>
-        <div class="swap"><span class="side">${A.av(e, 'sm')}${A.shiftChip(r.fromShift, { date: r.date })}</span><span class="arr">${ic('swap')}</span><span class="side">${A.av(t, 'sm')}<span><b style="font-weight:500;font-size:12.5px">${A.esc(t.name)}</b><br/><small class="muted">${r.mode === 'cover' ? 'đang nghỉ → nhận ca' : shiftTxt(r.toShift, r.date)}</small></span></span></div>`;
+        <div class="swap"><span class="side"><b class="sw-n">${A.esc(e.name.split(' ').slice(-2).join(' '))}</b>${A.shiftChip(r.fromShift, { date: r.date })}</span><span class="arr">${ic('swap')}</span><span class="side"><span><b style="font-weight:500;font-size:12.5px">${A.esc(t.name)}</b><br/><small class="muted">${r.mode === 'cover' ? 'đang nghỉ → nhận ca' : shiftTxt(r.toShift, r.date)}</small></span></span></div>`;
     }
     const w = r.status === 'pending' ? warnings(r) : [];
     return `
